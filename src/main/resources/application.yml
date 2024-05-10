@@ -1,0 +1,15 @@
+file:
+  loc: D:\\elasticSearch
+
+elasticSearch:
+  host: http://localhost:9200
+  index: file_info
+  bulk:
+    path: /_bulk
+    file: bulk.json
+  insert:
+    file:
+      path: /_doc?pipeline=attachment&refresh=true&pretty=true&routing=
+  delete:
+    query:
+      path: /_delete_by_query
