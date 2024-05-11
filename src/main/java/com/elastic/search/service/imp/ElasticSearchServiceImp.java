@@ -79,13 +79,25 @@ public class ElasticSearchServiceImp implements ElasticSearchService{
 	
 	@Override
 	public String selectFile(String keyword) throws MalformedURLException, IOException, ElasticSearchException, Exception {
+		String res = null;
+
 		String paramStr = "{\"query\": {\"wildcard\": {\"attachment.content\": \"*" + keyword + "*\"}}}";
 		String data = ElasticSearchUtil.get(selectUrl, paramStr, true);
 
 		ObjectMapper objMapper = new ObjectMapper();
 		JsonNode root = objMapper.readTree(data);
-		String res = root.get("hits").get("hits").toString();
+		StringBuilder sb = new StringBuilder();
+		sb.append("[");
 		
+		for(JsonNode node : root.get("hits").get("hits")) {
+			JsonNode source = node.get("_source");
+			String fileName = source.get("fileName").toString();
+			String fileContent = source.get("attachment").get("content").toString();
+			
+			sb.append("{\"fileName\": ").append(fileName).append(", \"fileContent\": ").append(fileContent).append("},");
+		}
+		
+		res = sb.deleteCharAt(sb.length()-1).append("]").toString();
 		return res;
 	}
 	
