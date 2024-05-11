@@ -9,5 +9,7 @@ import com.elastic.search.common.ElasticSearchException;
 
 public interface ElasticSearchService {
 
+	public String selectFile(String keyword) throws MalformedURLException, IOException, ElasticSearchException, Exception;
+
 	public void insertFile(HttpServletRequest request) throws MalformedURLException, IOException, ElasticSearchException, Exception;
 }

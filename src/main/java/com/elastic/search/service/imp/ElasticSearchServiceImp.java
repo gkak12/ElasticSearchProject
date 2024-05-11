@@ -2,6 +2,7 @@ package com.elastic.search.service.imp;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
@@ -25,6 +26,8 @@ import org.springframework.web.multipart.support.StandardServletMultipartResolve
 import com.elastic.search.common.ElasticSearchException;
 import com.elastic.search.common.ElasticSearchUtil;
 import com.elastic.search.service.ElasticSearchService;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service("elasticSearchService")
 public class ElasticSearchServiceImp implements ElasticSearchService{
@@ -40,6 +43,9 @@ public class ElasticSearchServiceImp implements ElasticSearchService{
 	@Value("${elasticSearch.index}")
 	private String index;
 	
+	@Value("${elasticSearch.select.query.path}")
+	private String selectPath;
+	
 	@Value("${elasticSearch.bulk.path}")
 	private String bulkPath;
 
@@ -54,6 +60,8 @@ public class ElasticSearchServiceImp implements ElasticSearchService{
 	
 	@Resource(name = "multipartResolver")
     private StandardServletMultipartResolver multipartResolver;
+
+	private String selectUrl;
 	
 	private String bulkUrl;
 	
@@ -63,9 +71,22 @@ public class ElasticSearchServiceImp implements ElasticSearchService{
 	
 	@Autowired
 	public void init() {	// 엘라스틱서치 url 초기화
+		selectUrl = host + "/" + index + selectPath; 
 		bulkUrl = host + bulkPath;
 		insertFileUrl = host + "/" + index + insertFilePath;
 		deleteUrl = host + "/" + index + deleteQueryPath;
+	}
+	
+	@Override
+	public String selectFile(String keyword) throws MalformedURLException, IOException, ElasticSearchException, Exception {
+		String paramStr = "{\"query\": {\"wildcard\": {\"attachment.content\": \"*" + keyword + "*\"}}}";
+		String data = ElasticSearchUtil.get(selectUrl, paramStr, true);
+
+		ObjectMapper objMapper = new ObjectMapper();
+		JsonNode root = objMapper.readTree(data);
+		String res = root.get("hits").get("hits").toString();
+		
+		return res;
 	}
 	
 	@Override
@@ -77,7 +98,7 @@ public class ElasticSearchServiceImp implements ElasticSearchService{
 		File fileDir = new File(fileLoc + File.separator + uuid);
 		fileDir.mkdirs();
 		
-		List<File> resFileList = saveFileToDisk(fileDir, fileList);
+		List<File> resFileList = saveFileToDisk(fileDir, fileList);	// 첨부파일 디스크 저장
 		
 		if(resFileList.size() > 1) {	// 파일이 2건 이상인 경우
 			bulkFileElastic(uuid, fileDir, resFileList);
@@ -85,7 +106,7 @@ public class ElasticSearchServiceImp implements ElasticSearchService{
 			saveFileElastic(uuid, fileDir, resFileList);
 		}
 	}
-	
+
 	private List<File> saveFileToDisk(File fileDir, List<MultipartFile> fileList) throws IOException {
 		List<File> resList = new ArrayList<File>();
 		
@@ -97,7 +118,7 @@ public class ElasticSearchServiceImp implements ElasticSearchService{
 				resList.add(sFile);
 			}
 		} catch (IOException e) {
-			// 파일 저장 롤백 코드 추가
+			LOGGER.debug(e.toString());
 			fileDir.delete();
 			throw new IOException("엘라스틱 첨부파일 디스크에 저장 중에 예외 발생했습니다.");
 		}
@@ -157,7 +178,10 @@ public class ElasticSearchServiceImp implements ElasticSearchService{
 			byte[] enFile = Base64.getEncoder().encode(byteFile);
 			
 			res = new String(enFile);
-		} catch (Exception e) {
+		} catch(FileNotFoundException e) {
+			LOGGER.debug(e.toString());
+			throw new ElasticSearchException("엘라스틱서치 첨부파일이 디스크에 저장되지 않았습니다.");
+		} catch (IOException e) {
 			LOGGER.debug(e.toString());
 			throw new ElasticSearchException("엘라스틱서치 첨부파일 인코딩 변환 중에 예외 발생했습니다.");
 		}

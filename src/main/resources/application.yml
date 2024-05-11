@@ -4,6 +4,9 @@ file:
 elasticSearch:
   host: http://localhost:9200
   index: file_info
+  select:
+    query:
+      path: /_search
   bulk:
     path: /_bulk
     file: bulk.json
