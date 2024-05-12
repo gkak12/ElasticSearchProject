@@ -1,4 +1,4 @@
-package com.elastic.search.common;
+package com.elastic.search.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -9,6 +9,6 @@ public class MultipartResolverConfig {
 
 	@Bean
 	public StandardServletMultipartResolver multipartResolver() {
-        return new StandardServletMultipartResolver();
+		return new StandardServletMultipartResolver();
     }
 }
