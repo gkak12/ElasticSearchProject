@@ -9,12 +9,11 @@ spring:
     password: ENC(lxll/AvbQLKHE6fYtwdEvcyUl5czZ+nx)
   jpa:
     database: postgresql
-
-file:
-  loc: D:\\elasticSearch
+  config:
+    import: common.yml
 
 elasticSearch:
-  host: http://localhost:9200
+  host: http://192.168.0.200:19200
   index: file_info
   select:
     query:
@@ -29,6 +28,5 @@ elasticSearch:
     query:
       path: /_delete_by_query
       
-jasypt:
-  encryptor:
-    bean: jasyptEncryptorDES
+file:
+  loc: /home/data
