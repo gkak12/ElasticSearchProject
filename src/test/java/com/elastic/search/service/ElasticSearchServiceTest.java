@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.io.IOException;
 import java.net.MalformedURLException;
 
+import javax.annotation.Resource;
+
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Value;
@@ -42,6 +44,9 @@ class ElasticSearchServiceTest {
 	@Value("${elasticSearch.delete.query.path}")
 	private String deleteQueryPath;
 	
+	@Resource(name = "elasticSearchUtil")
+	private ElasticSearchUtil elasticSearchUtil;
+	
 	@ParameterizedTest
 	@CsvSource({
 		"엘라스틱서치, true",
@@ -53,7 +58,7 @@ class ElasticSearchServiceTest {
 		String selectUrl = host + "/" + index + selectPath; 
 		
 		String paramStr = "{\"query\": {\"wildcard\": {\"attachment.content\": \"*" + keyword + "*\"}}}";
-		String str = ElasticSearchUtil.get(selectUrl, paramStr, true);
+		String str = elasticSearchUtil.get(selectUrl, paramStr, true);
 		
 		boolean res =  str != null ? true : false;
 		assertEquals(expRes, res);

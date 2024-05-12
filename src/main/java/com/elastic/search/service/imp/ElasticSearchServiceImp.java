@@ -60,6 +60,9 @@ public class ElasticSearchServiceImp implements ElasticSearchService{
 	
 	@Resource(name = "multipartResolver")
     private StandardServletMultipartResolver multipartResolver;
+	
+	@Resource(name = "elasticSearchUtil")
+	private ElasticSearchUtil elasticSearchUtil;
 
 	private String selectUrl;
 	
@@ -82,7 +85,7 @@ public class ElasticSearchServiceImp implements ElasticSearchService{
 		String res = null;
 
 		String paramStr = "{\"query\": {\"wildcard\": {\"attachment.content\": \"*" + keyword + "*\"}}}";
-		String data = ElasticSearchUtil.get(selectUrl, paramStr, true);
+		String data = elasticSearchUtil.get(selectUrl, paramStr, true);
 
 		ObjectMapper objMapper = new ObjectMapper();
 		JsonNode root = objMapper.readTree(data);
@@ -153,10 +156,10 @@ public class ElasticSearchServiceImp implements ElasticSearchService{
 			}
 			
 			LOGGER.debug(bulkUrl + " " + sb.toString());
-			ElasticSearchUtil.post(bulkUrl, sb.toString());
+			elasticSearchUtil.post(bulkUrl, sb.toString());
 		} catch (Exception e) {
 			LOGGER.debug(e.toString());
-			deleteFileElastic(uuid);
+			rollbackFileElastic(uuid);
 			throw new ElasticSearchException("엘라스틱서치 다중 첨부파일 등록 중에 예외 발생했습니다.");
 		}
 	}
@@ -173,11 +176,11 @@ public class ElasticSearchServiceImp implements ElasticSearchService{
 				jsonObj.put("fileContent", fileContent);
 				
 				LOGGER.debug(insertFileUrl + " " + jsonObj.toString());
-				ElasticSearchUtil.post(insertFileUrl, jsonObj.toString());
+				elasticSearchUtil.post(insertFileUrl, jsonObj.toString());
 			}
 		} catch (Exception e) {
 			LOGGER.debug(e.toString());
-			deleteFileElastic(uuid);
+			rollbackFileElastic(uuid);
 			throw new ElasticSearchException("엘라스틱서치 단일 첨부파일 등록 중에 예외 발생했습니다.");
 		}
 	}
@@ -201,10 +204,10 @@ public class ElasticSearchServiceImp implements ElasticSearchService{
 		return res;
 	}
 	
-	private void deleteFileElastic(String uuid) throws MalformedURLException, IOException, ElasticSearchException, Exception{
+	private void rollbackFileElastic(String uuid) throws MalformedURLException, IOException, ElasticSearchException, Exception{
 		try {
 			String queryStr = "{\"query\":{\"match\":{\"uuid\":" + uuid + "}}}";
-			ElasticSearchUtil.post(deleteUrl, queryStr);
+			elasticSearchUtil.post(deleteUrl, queryStr);
 		} catch (Exception e) {
 			LOGGER.debug(e.toString());
 			throw new ElasticSearchException("엘라스틱서치 첨부파일 예외 처리 실패했습니다.");

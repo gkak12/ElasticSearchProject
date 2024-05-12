@@ -10,17 +10,19 @@ import java.net.URL;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
+@Component("elasticSearchUtil")
 public class ElasticSearchUtil {
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(ElasticSearchUtil.class);
 	
-	public static String get(String apiUrl, String paramStr, boolean bodyFlag) throws MalformedURLException, IOException, ElasticSearchException {
+	public String get(String apiUrl, String paramStr, boolean bodyFlag) throws MalformedURLException, IOException, ElasticSearchException {
 		String res = null;
 		URL url = new URL(apiUrl);
 		HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 		
-		conn.setRequestMethod("GET"); // POST method 설정
+		conn.setRequestMethod("GET"); // GET method 설정
 		
 		conn.addRequestProperty("charset", "UTF-8");	// header 추가
 	    conn.addRequestProperty("Content-Type", "application/json; utf-8");
@@ -65,7 +67,7 @@ public class ElasticSearchUtil {
 		return res;
 	}
 	
-	public static void post(String apiUrl, String paramStr) throws MalformedURLException, IOException, ElasticSearchException {
+	public void post(String apiUrl, String paramStr) throws MalformedURLException, IOException, ElasticSearchException {
 		URL url = new URL(apiUrl);
 		HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 		

@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.io.IOException;
 import java.net.MalformedURLException;
 
+import javax.annotation.Resource;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
@@ -19,6 +21,9 @@ class ElasticSearchUtilTest {
 	@Value("${elasticSearch.host}")
 	private String host;
 	
+	@Resource(name = "elasticSearchUtil")
+	private ElasticSearchUtil elasticSearchUtil;
+	
 	@Test
 	public void 엘라스틱서치_접속_테스트() {
 		boolean expRes = true;
@@ -28,7 +33,7 @@ class ElasticSearchUtilTest {
 			String queryStr = "{\"query\": {\"match_all\": {}}}";
 			JSONObject jsonObject = new JSONObject(queryStr);
 			
-			String str = ElasticSearchUtil.get(apiUrl, jsonObject.toString(), true);
+			String str = elasticSearchUtil.get(apiUrl, jsonObject.toString(), true);
 			System.out.println(str);
 			
 			boolean res = str != null ? true : false;
