@@ -25,6 +25,8 @@ import org.springframework.web.multipart.support.StandardServletMultipartResolve
 
 import com.elastic.search.common.ElasticSearchException;
 import com.elastic.search.common.ElasticSearchUtil;
+import com.elastic.search.dto.FileInfoDto;
+import com.elastic.search.repository.ElasticSearchRepository;
 import com.elastic.search.service.ElasticSearchService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -58,11 +60,14 @@ public class ElasticSearchServiceImp implements ElasticSearchService{
 	@Value("${elasticSearch.delete.query.path}")
 	private String deleteQueryPath;
 	
-	@Resource(name = "multipartResolver")
+	@Resource(name="multipartResolver")
     private StandardServletMultipartResolver multipartResolver;
 	
-	@Resource(name = "elasticSearchUtil")
+	@Resource(name="elasticSearchUtil")
 	private ElasticSearchUtil elasticSearchUtil;
+	
+	@Resource(name="elasticSearchRepository")
+	private ElasticSearchRepository elasticSearchRepository;
 
 	private String selectUrl;
 	
@@ -144,6 +149,7 @@ public class ElasticSearchServiceImp implements ElasticSearchService{
 	private void bulkFileElastic(String uuid, File fileDir, List<File> fileList) throws MalformedURLException, IOException, ElasticSearchException, Exception{
 		try {
 			StringBuilder sb = new StringBuilder();
+			List<FileInfoDto> list = new ArrayList<FileInfoDto>();
 			
 			for(File fileItem : fileList) {
 				sb.append("{\"index\": {\"_index\": \"").append(index).append("\",")
@@ -153,10 +159,20 @@ public class ElasticSearchServiceImp implements ElasticSearchService{
 				sb.append("{\"uuid\": \"").append(uuid).append("\",")
 				.append("\"fileName\": \"").append(fileItem.getName()).append("\",")
 				.append("\"fileContent\": \"").append(convertFile(fileItem)).append("\"}\n");
+				
+				FileInfoDto fileInfoDto = FileInfoDto.builder()
+												.fileName(fileItem.getName())
+												.fileDir(fileItem.getAbsolutePath())
+												.uuid(uuid)
+												.build();
+				
+				list.add(fileInfoDto);
 			}
 			
 			LOGGER.debug(bulkUrl + " " + sb.toString());
-			elasticSearchUtil.post(bulkUrl, sb.toString());
+			elasticSearchUtil.post(bulkUrl, sb.toString());	// 엘라스틱서치 인덱스 2건 이상 저장, bulk api
+			
+			elasticSearchRepository.insertBatch(list);	// DB 테이블 2건 이상 저장, batch
 		} catch (Exception e) {
 			LOGGER.debug(e.toString());
 			rollbackFileElastic(uuid);
@@ -175,8 +191,16 @@ public class ElasticSearchServiceImp implements ElasticSearchService{
 				jsonObj.put("fileName", fileItem.getName());
 				jsonObj.put("fileContent", fileContent);
 				
+				FileInfoDto fileInfoDto = FileInfoDto.builder()
+						.fileName(fileItem.getName())
+						.fileDir(fileItem.getAbsolutePath())
+						.uuid(uuid)
+						.build();
+				
 				LOGGER.debug(insertFileUrl + " " + jsonObj.toString());
-				elasticSearchUtil.post(insertFileUrl, jsonObj.toString());
+				elasticSearchUtil.post(insertFileUrl, jsonObj.toString());	// 엘라스틱서치 인덱스 1건 저장
+				
+				elasticSearchRepository.insert(fileInfoDto);	// DB 테이블 1건 저장
 			}
 		} catch (Exception e) {
 			LOGGER.debug(e.toString());
