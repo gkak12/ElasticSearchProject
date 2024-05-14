@@ -10,12 +10,19 @@ import java.net.URL;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component("elasticSearchUtil")
 public class ElasticSearchUtil {
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(ElasticSearchUtil.class);
+	
+	@Value("${elasticSearch.connectTimeout}")
+	private int connectTimeout;
+
+	@Value("${elasticSearch.readTimeout}")
+	private int readTimeout;
 	
 	public String get(String apiUrl, String paramStr, boolean bodyFlag) throws MalformedURLException, IOException, ElasticSearchException {
 		String res = null;
@@ -29,6 +36,9 @@ public class ElasticSearchUtil {
 	    conn.addRequestProperty("Accept", "application/json");
 		
 		conn.setDoOutput(true);
+		conn.setConnectTimeout(connectTimeout);
+		conn.setReadTimeout(readTimeout);
+		
 		String errMsg = "엘라스틱서치 조회 실패했습니다. cause: ";
 
 		try (OutputStream os = conn.getOutputStream();) {

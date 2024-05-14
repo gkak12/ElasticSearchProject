@@ -27,6 +27,8 @@ elasticSearch:
   delete:
     query:
       path: /_delete_by_query
+  connectTimeout: 1000
+  readTimeout: 1000
       
 file:
   loc: /home/data
