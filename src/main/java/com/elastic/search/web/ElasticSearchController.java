@@ -57,4 +57,22 @@ public class ElasticSearchController {
 		
 		return res;
 	}
+	
+	@PostMapping(value="/restoreSnapshot.json")
+	public ResponseEntity<String> restoreSnapshot(@RequestParam(name = "snapshotName", required = true) String snapshotName){
+		ResponseEntity<String> res = null;
+		
+		try {
+			elasticSearchService.restoreSnapshot(snapshotName);
+			res = ResponseEntity.status(HttpStatus.OK).build();
+		} catch(MalformedURLException e) {
+			res = ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+		} catch(IOException | ElasticSearchException e) {
+			res = ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+		} catch (Exception e) {
+			res = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+		}
+		
+		return res;
+	}
 }

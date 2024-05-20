@@ -30,6 +30,9 @@ elasticSearch:
   delete:
     query:
       path: /_delete_by_query
+  snapshot:
+    path: /_snapshot/test_backup
+    restore: /_restore
   connectTimeout: 1000
   readTimeout: 1000
       

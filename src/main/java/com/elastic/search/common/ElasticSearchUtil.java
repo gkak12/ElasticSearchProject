@@ -108,4 +108,36 @@ public class ElasticSearchUtil {
 			conn.disconnect();
 		}
 	}
+	
+	public void put(String apiUrl, String paramStr) throws MalformedURLException, IOException, ElasticSearchException {
+		URL url = new URL(apiUrl);
+		HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+		
+		conn.setRequestMethod("PUT"); // PUT method 설정
+		
+		conn.addRequestProperty("charset", "UTF-8");	// header 추가
+	    conn.addRequestProperty("Content-Type", "application/json; utf-8");
+	    conn.addRequestProperty("Accept", "application/json");
+		
+		conn.setDoOutput(true);
+		String errMsg = "엘라스틱서치 연산 처리 실패했습니다. cause: ";
+
+		try (OutputStream os = conn.getOutputStream();) {
+		    if(paramStr != null && !paramStr.isBlank()) {
+		    	os.write(paramStr.getBytes("UTF-8"));
+		    }
+		    
+		    conn.connect();
+		    int statusCode = conn.getResponseCode();
+
+		    if (statusCode >= 400) {
+		        throw new ElasticSearchException(errMsg + statusCode + " error.");
+		    }
+		} catch (Exception e) {
+			LOGGER.debug(e.toString());
+			throw new ElasticSearchException(errMsg + e.toString());
+		} finally {
+			conn.disconnect();
+		}
+	}
 }

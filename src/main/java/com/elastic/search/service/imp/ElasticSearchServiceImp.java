@@ -60,6 +60,12 @@ public class ElasticSearchServiceImp implements ElasticSearchService{
 	@Value("${elasticSearch.delete.query.path}")
 	private String deleteQueryPath;
 	
+	@Value("${elasticSearch.snapshot.path}")
+	private String path;
+	
+	@Value("${elasticSearch.snapshot.restore}")
+	private String restore;
+	
 	@Resource(name="multipartResolver")
     private StandardServletMultipartResolver multipartResolver;
 	
@@ -236,5 +242,18 @@ public class ElasticSearchServiceImp implements ElasticSearchService{
 			LOGGER.debug(e.toString());
 			throw new ElasticSearchException("엘라스틱서치 첨부파일 예외 처리 실패했습니다.");
 		}
+	}
+
+	@Override
+	public void restoreSnapshot(String snapshotName) throws MalformedURLException, IOException, ElasticSearchException, Exception {
+		StringBuilder sb = new StringBuilder();
+		String url = sb.append(host).append(path).append("/").append(snapshotName).append(restore).toString();
+		
+		JSONObject jsonObj = new JSONObject();
+		jsonObj.put("indices", index);
+		jsonObj.put("ignore_unavailable", true);
+		jsonObj.put("include_global_state", false);
+		
+		elasticSearchUtil.post(url, jsonObj.toString());
 	}
 }
