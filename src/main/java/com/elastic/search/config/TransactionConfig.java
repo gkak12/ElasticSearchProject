@@ -20,8 +20,8 @@ import org.springframework.transaction.interceptor.TransactionInterceptor;
 
 import lombok.RequiredArgsConstructor;
 
-@Aspect
 @Configuration
+@Aspect
 @RequiredArgsConstructor
 public class TransactionConfig {
 	private static final int TX_METHOD_TIMEOUT = 10;

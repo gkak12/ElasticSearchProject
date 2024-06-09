@@ -11,6 +11,7 @@ import java.net.URL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 @Component("elasticSearchUtil")
@@ -25,6 +26,8 @@ public class ElasticSearchUtil {
 	private int readTimeout;
 	
 	public String get(String apiUrl, String paramStr, boolean bodyFlag) throws MalformedURLException, IOException, ElasticSearchException {
+		LOGGER.debug(apiUrl);
+		
 		String res = null;
 		URL url = new URL(apiUrl);
 		HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -77,7 +80,10 @@ public class ElasticSearchUtil {
 		return res;
 	}
 	
+	@Async
 	public void post(String apiUrl, String paramStr) throws MalformedURLException, IOException, ElasticSearchException {
+		LOGGER.info(apiUrl);
+		
 		URL url = new URL(apiUrl);
 		HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 		
@@ -110,6 +116,8 @@ public class ElasticSearchUtil {
 	}
 	
 	public void put(String apiUrl, String paramStr) throws MalformedURLException, IOException, ElasticSearchException {
+		LOGGER.debug(apiUrl);
+		
 		URL url = new URL(apiUrl);
 		HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 		

@@ -4,6 +4,8 @@ import java.util.List;
 
 import javax.persistence.EntityManager;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
 
 import com.elastic.search.domain.FileInfo;
@@ -18,6 +20,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ElasticSearchRepositoryImp implements ElasticSearchRepository {
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(ElasticSearchRepositoryImp.class);
+	
 	private final JPAQueryFactory queryFactory;
 	
 	private final EntityManager entityManager;
@@ -37,6 +41,7 @@ public class ElasticSearchRepositoryImp implements ElasticSearchRepository {
 		fileInfo.setFileDir(fileInfoDto.getFileDir());
 		fileInfo.setElasticUuid(fileInfoDto.getUuid());
 		
+		LOGGER.info(fileInfo.toString());
 		entityManager.persist(fileInfo);
 	}
 
