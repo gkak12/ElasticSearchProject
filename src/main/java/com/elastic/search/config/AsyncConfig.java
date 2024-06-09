@@ -17,7 +17,7 @@ public class AsyncConfig {
         executor.setCorePoolSize(4);
         executor.setMaxPoolSize(4);
         executor.setQueueCapacity(1000);
-        executor.setThreadNamePrefix("Elastic-Thread-");
+        executor.setThreadNamePrefix("ElasticThread-");
         executor.initialize();
         return executor;
     }
