@@ -1,16 +1,20 @@
 package com.elastic.search.repository.imp;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 import javax.persistence.EntityManager;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Repository;
 
 import com.elastic.search.domain.FileInfo;
 import com.elastic.search.domain.QFileInfo;
 import com.elastic.search.dto.FileInfoDto;
+import com.elastic.search.dto.SearchDto;
 import com.elastic.search.repository.ElasticSearchRepository;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 
@@ -18,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 
 @Repository("elasticSearchRepository")
 @RequiredArgsConstructor
+@EnableAsync
 public class ElasticSearchRepositoryImp implements ElasticSearchRepository {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ElasticSearchRepositoryImp.class);
@@ -29,9 +34,38 @@ public class ElasticSearchRepositoryImp implements ElasticSearchRepository {
 	@Override
 	public List<FileInfo> selectListAll() throws Exception {
 		QFileInfo qFileInfo = QFileInfo.fileInfo;
-		List<FileInfo> list = queryFactory.select(qFileInfo).fetch();
+		List<FileInfo> list = queryFactory
+								.select(qFileInfo)
+								.from(qFileInfo)
+								.fetch();
 		
 		return list;
+	}
+	
+	@Async
+	@Override
+	public CompletableFuture<List<FileInfo>> selectListPaging(SearchDto searchDto) throws Exception {
+		QFileInfo qFileInfo = QFileInfo.fileInfo;
+		List<FileInfo> list = queryFactory
+								.select(qFileInfo)
+								.from(qFileInfo)
+								.offset(searchDto.getOffSet())
+								.limit(searchDto.getLimit())
+								.fetch();
+		
+		return CompletableFuture.completedFuture(list);
+	}
+
+	@Async
+	@Override
+	public CompletableFuture<Long> selectListPagingCnt(SearchDto searchDto) throws Exception {
+		QFileInfo qFileInfo = QFileInfo.fileInfo;
+		Long cnt = queryFactory
+					.select(qFileInfo.count())
+					.from(qFileInfo)
+					.fetchOne();
+		
+		return CompletableFuture.completedFuture(cnt);
 	}
 
 	@Override

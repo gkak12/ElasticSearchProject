@@ -6,19 +6,26 @@ import java.net.MalformedURLException;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.elastic.search.common.ElasticSearchException;
+import com.elastic.search.dto.PagingDto;
+import com.elastic.search.dto.SearchDto;
 import com.elastic.search.service.ElasticSearchService;
 
 @RestController
 public class ElasticSearchController {
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(ElasticSearchController.class);
+	
 	@Resource(name = "elasticSearchService")
 	private ElasticSearchService elasticSearchService;
 	
@@ -69,6 +76,20 @@ public class ElasticSearchController {
 			res = ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
 		} catch(IOException | ElasticSearchException e) {
 			res = ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+		} catch (Exception e) {
+			res = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+		}
+		
+		return res;
+	}
+	
+	@PostMapping(value="/selectListPaging.json")
+	public ResponseEntity<PagingDto> selectListPaging(@RequestBody SearchDto searchDto){
+		ResponseEntity<PagingDto> res = null;
+		
+		try {
+			PagingDto pagingDto = elasticSearchService.selectListPaging(searchDto);
+			res = ResponseEntity.status(HttpStatus.OK).body(pagingDto);
 		} catch (Exception e) {
 			res = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
 		}

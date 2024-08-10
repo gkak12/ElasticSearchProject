@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -25,7 +26,10 @@ import org.springframework.web.multipart.support.StandardServletMultipartResolve
 
 import com.elastic.search.common.ElasticSearchException;
 import com.elastic.search.common.ElasticSearchUtil;
+import com.elastic.search.domain.FileInfo;
 import com.elastic.search.dto.FileInfoDto;
+import com.elastic.search.dto.PagingDto;
+import com.elastic.search.dto.SearchDto;
 import com.elastic.search.repository.ElasticSearchRepository;
 import com.elastic.search.service.ElasticSearchService;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -186,7 +190,7 @@ public class ElasticSearchServiceImp implements ElasticSearchService{
 		}
 	}
 	
-	private void saveFileElastic(String uuid, File fileDir, List<File> fileList) throws MalformedURLException, IOException, ElasticSearchException, Exception{
+	private void saveFileElastic(String uuid, File fileDir, List<File> fileList) throws MalformedURLException, IOException, ElasticSearchException, Exception {
 		try {
 			for(File fileItem : fileList) {
 				String fileContent = convertFile(fileItem);
@@ -255,5 +259,19 @@ public class ElasticSearchServiceImp implements ElasticSearchService{
 		jsonObj.put("include_global_state", false);
 		
 		elasticSearchUtil.post(url, jsonObj.toString());
+	}
+
+	@Override
+	public PagingDto selectListPaging(SearchDto searchDto) throws Exception {
+		CompletableFuture<List<FileInfo>> futureList = elasticSearchRepository.selectListPaging(searchDto);
+		CompletableFuture<Long> futureCnt = elasticSearchRepository.selectListPagingCnt(searchDto);
+		
+		CompletableFuture.allOf(futureList, futureCnt).join();
+		
+		List<FileInfo> list = futureList.get();
+		Long cnt = futureCnt.get();
+		
+		PagingDto pagingDto = PagingDto.builder().list(list).cnt(cnt).build();
+		return pagingDto;
 	}
 }
